@@ -37,7 +37,8 @@ gprpc library will be installed into `/usr/local` by default, modify the line `s
 ```
 git clone https://github.com/heroperseus/gprpc.git
 cd gprpc
-mkdir build && cmake.. && make
+mkdir build && cd build
+cmake.. && make
 sudo make install
 ```
 
