@@ -22,7 +22,7 @@ gprpc is a RPC library which utilized Boost asio to achive high performence netw
 - Multiple language support
 
 ## Documentation
-
+- [gprpc detail](docs/gprpc_detail.md)
 
 ## Building
 
