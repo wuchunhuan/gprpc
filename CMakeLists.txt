@@ -52,7 +52,7 @@ include_directories(src/common
         src/proto
         ../common
         include)
-add_compile_options(-g -Wall -fPIC -fpermissive -std=c++11)
+add_compile_options(-O2 -Wall -fPIC -fpermissive -std=c++11)
 file(GLOB_RECURSE cli_source_files "src/cli/*")
 file(GLOB_RECURSE srv_source_files "src/srv/*")
 file(GLOB_RECURSE dbg_source_files "src/common/rpc_debug.cpp")
