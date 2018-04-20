@@ -25,7 +25,7 @@
 #include <gprpc/common.h>
 using namespace common;
 using namespace boost::asio::ip;
-using namespace boost::system;
+//using namespace boost::system;
 namespace gprpc {
     class rpc_controller;
 }
@@ -71,20 +71,20 @@ namespace gprpc {
 
         private:
             void send();
-            void handle_send(const error_code &e, size_t bytes_trans);
+            void handle_send(const boost::system::error_code &e, size_t bytes_trans);
             void resolve();
-            void handle_resolve(const error_code &e, tcp::resolver::iterator ep_it);
+            void handle_resolve(const boost::system::error_code &e, tcp::resolver::iterator ep_it);
             void connect();
-            void handle_connect(const error_code &e);
+            void handle_connect(const boost::system::error_code &e);
             void rcv_rsp_header();
-            void handle_rsp_header(const error_code &e, size_t bytes_trans);
+            void handle_rsp_header(const boost::system::error_code &e, size_t bytes_trans);
             void rcv_rsp_data();
-            void handle_rsp_data(const error_code &e, size_t bytes_trans);
+            void handle_rsp_data(const boost::system::error_code &e, size_t bytes_trans);
             void done(int32_t err_code, std::string extra_err_msg = "");
-            void handle_total_timeout(const error_code &e);
-            void handle_resolve_timeout(const error_code &e);
-            void handle_conn_timeout(const error_code &e);
-            void handle_sock_timeout(const error_code &e, timout_reason tr);
+            void handle_total_timeout(const boost::system::error_code &e);
+            void handle_resolve_timeout(const boost::system::error_code &e);
+            void handle_conn_timeout(const boost::system::error_code &e);
+            void handle_sock_timeout(const boost::system::error_code &e, timout_reason tr);
             const std::string& get_timeout_reason();
 
         private:
@@ -101,6 +101,7 @@ namespace gprpc {
             Closure& done_;
             gprpc::rpc_controller& controller_;
             Message* response_;
+            tcp::resolver::iterator it_ep_;
         };
         typedef boost::shared_ptr<cli_conn> cli_conn_ptr;
     }

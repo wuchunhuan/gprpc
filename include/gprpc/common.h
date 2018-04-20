@@ -25,7 +25,7 @@
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
 
-using namespace std;
+//using namespace std;
 using namespace ::google::protobuf;
 using namespace boost::asio;
 using namespace boost::asio::ip;

@@ -47,7 +47,7 @@ gprpc::client::cli_conn::cli_conn(gprpc::client::rpc_channel_impl& channel,
 gprpc::client::cli_conn::~cli_conn() {
 }
 
-void gprpc::client::cli_conn::handle_total_timeout(const error_code &e) {
+void gprpc::client::cli_conn::handle_total_timeout(const boost::system::error_code &e) {
     if (!e) {
         tr_ = TOTAL_TIMEOUT;
         channel_impl_.get_resolver().cancel();
@@ -57,7 +57,7 @@ void gprpc::client::cli_conn::handle_total_timeout(const error_code &e) {
     }
 }
 
-void gprpc::client::cli_conn::handle_resolve_timeout(const error_code &e) {
+void gprpc::client::cli_conn::handle_resolve_timeout(const boost::system::error_code &e) {
     if (!e) {
         tr_ = RESOLVE_TIMEOUT;
         channel_impl_.get_resolver().cancel();
@@ -65,7 +65,7 @@ void gprpc::client::cli_conn::handle_resolve_timeout(const error_code &e) {
     }
 }
 
-void gprpc::client::cli_conn::handle_conn_timeout(const error_code &e) {
+void gprpc::client::cli_conn::handle_conn_timeout(const boost::system::error_code &e) {
     if (!e) {
         tr_ = CONNECT_TIMEOUT;
         boost::system::error_code ignored_ec;
@@ -73,7 +73,7 @@ void gprpc::client::cli_conn::handle_conn_timeout(const error_code &e) {
     }
 }
 
-void gprpc::client::cli_conn::handle_sock_timeout(const error_code &e, timout_reason tr) {
+void gprpc::client::cli_conn::handle_sock_timeout(const boost::system::error_code &e, timout_reason tr) {
     if (!e) {
         tr_ = tr;
         boost::system::error_code ignored_ec;
@@ -95,6 +95,7 @@ void gprpc::client::cli_conn::start() {
     }
 
     if (channel_impl_.get_it_ep() != end) {
+        it_ep_ = channel_impl_.get_it_ep();
         connect();
     } else {
         resolve();
@@ -133,7 +134,7 @@ void gprpc::client::cli_conn::send() {
                      boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
 }
 
-void gprpc::client::cli_conn::handle_send(const error_code &e, size_t bytes_trans) {
+void gprpc::client::cli_conn::handle_send(const boost::system::error_code &e, size_t bytes_trans) {
     if (!e) {
         if (bytes_trans != sizeof(header_) + header_.data_len) {
             done(-4, "request message not sent completely");
@@ -194,7 +195,7 @@ void gprpc::client::cli_conn::done(int32_t err_code, std::string extra_err_msg) 
     }
 }
 
-void gprpc::client::cli_conn::handle_connect(const error_code &e) {
+void gprpc::client::cli_conn::handle_connect(const boost::system::error_code &e) {
     if (!e) {
         d_log << "Rpc call: " << controller_.impl_->get_call_tag() << ", connected!";
         send();
@@ -206,8 +207,10 @@ void gprpc::client::cli_conn::handle_connect(const error_code &e) {
             ss << ", " << get_timeout_reason();
         }
 
-        channel_impl_.get_it_ep()++;
-        if (channel_impl_.get_it_ep() != tcp::resolver::iterator()) {
+//        channel_impl_.get_it_ep()++;
+        it_ep_++;
+//        if (channel_impl_.get_it_ep() != tcp::resolver::iterator()) {
+        if (it_ep_ != tcp::resolver::iterator()) {
             e_log << "Rpc call: " << controller_.impl_->get_call_tag() << ", connect failed," << ss.str();
             connect();
         } else {
@@ -216,12 +219,15 @@ void gprpc::client::cli_conn::handle_connect(const error_code &e) {
         }
     }
 }
-void gprpc::client::cli_conn::handle_resolve(const error_code &e, tcp::resolver::iterator ep_it) {
+void gprpc::client::cli_conn::handle_resolve(const boost::system::error_code &e, tcp::resolver::iterator ep_it) {
     if (!e) {
         d_log << "Rpc call: " << controller_.impl_->get_call_tag() << ", resolving done!";
-        //todo:lock? Nah, won't cause serious problem, just leave it be
+        //todo:lock? Nah, won't cause serious problem, just leave it be.
+        //todo:IT WILL!
 //        it_ep_ = ep_it;
-        channel_impl_.set_it_ep(ep_it);
+//        channel_impl_.set_it_ep(ep_it);
+        channel_impl_.set_it_ep_if_empty(ep_it);
+        it_ep_ = channel_impl_.get_it_ep();
         connect();
     } else {
         std::stringstream ss;
@@ -235,7 +241,8 @@ void gprpc::client::cli_conn::handle_resolve(const error_code &e, tcp::resolver:
 }
 
 void gprpc::client::cli_conn::connect() {
-    if (channel_impl_.get_it_ep() != tcp::resolver::iterator()) {
+//    if (channel_impl_.get_it_ep() != tcp::resolver::iterator()) {
+    if (it_ep_ != tcp::resolver::iterator()) {
         uint32_t connect_timeout = controller_.get_connect_timeout();
         if (connect_timeout > 0) {
             deadline_.expires_from_now(boost::posix_time::milliseconds(connect_timeout));
@@ -246,7 +253,9 @@ void gprpc::client::cli_conn::connect() {
         }
 
         d_log << "Rpc call: " << controller_.impl_->get_call_tag() << ", start connecting...";
-        boost::asio::async_connect(socket_, channel_impl_.get_it_ep(),
+//        boost::asio::async_connect(socket_, channel_impl_.get_it_ep(),
+//                                   bind(&gprpc::client::cli_conn::handle_connect, shared_from_this(), boost::asio::placeholders::error));
+        boost::asio::async_connect(socket_, it_ep_,
                                    bind(&gprpc::client::cli_conn::handle_connect, shared_from_this(), boost::asio::placeholders::error));
     } else {
         e_log << "Rpc call: " << controller_.impl_->get_call_tag() << ", no resolved endpoints available!";
@@ -286,7 +295,7 @@ void gprpc::client::cli_conn::rcv_rsp_header() {
                     boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
 }
 
-void gprpc::client::cli_conn::handle_rsp_header(const error_code &e, size_t bytes_trans) {
+void gprpc::client::cli_conn::handle_rsp_header(const boost::system::error_code &e, size_t bytes_trans) {
     if (!e) {
         if (bytes_trans != sizeof(rpc_header)) {
             done(-5);
@@ -322,7 +331,7 @@ void gprpc::client::cli_conn::rcv_rsp_data() {
                     boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
 }
 
-void gprpc::client::cli_conn::handle_rsp_data(const error_code &e, size_t bytes_trans) {
+void gprpc::client::cli_conn::handle_rsp_data(const boost::system::error_code &e, size_t bytes_trans) {
     if (!e) {
         if (bytes_trans != header_.data_len) {
             done(-8, "size of the received data is wrong");

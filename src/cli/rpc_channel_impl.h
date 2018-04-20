@@ -22,6 +22,7 @@
 #include <cstdint>
 #include <string>
 #include <gprpc/common.h>
+#include <boost/thread/shared_mutex.hpp>
 
 namespace gprpc {
     class rpc_data;
@@ -39,6 +40,11 @@ namespace gprpc {
 
         class rpc_channel_impl {
         public:
+
+            typedef boost::shared_mutex wr_mutex;
+            typedef boost::unique_lock<wr_mutex> w_lock;
+            typedef boost::shared_lock<wr_mutex> r_lock;
+
             rpc_channel_impl(rpc_client& client, const std::string& address, const std::string& port);
 
             const string &get_address() const;
@@ -51,7 +57,8 @@ namespace gprpc {
 
             tcp::resolver::iterator &get_it_ep();
 
-            void set_it_ep(tcp::resolver::iterator & it_ep);
+//            void set_it_ep(tcp::resolver::iterator & it_ep);
+            void set_it_ep_if_empty(tcp::resolver::iterator & it_ep);
 
             void handle_rpc_response(cli_conn_ptr conn);
 
@@ -85,6 +92,7 @@ namespace gprpc {
             rpc_client& client_;
 //            cli_conn_ptr conn_;
             tcp::resolver resolver_;
+            wr_mutex mutex_;
             tcp::resolver::iterator it_ep_;
         };
     }

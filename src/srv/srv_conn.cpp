@@ -48,7 +48,7 @@ void gprpc::server::srv_conn::read_req_head() {
                     boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
 }
 
-void gprpc::server::srv_conn::handle_req_head(const error_code &e, size_t bytes_trans) {
+void gprpc::server::srv_conn::handle_req_head(const boost::system::error_code &e, size_t bytes_trans) {
     if (!e) {
         set_start_time(get_time_stamp());
         seq_++;
@@ -81,7 +81,7 @@ void gprpc::server::srv_conn::handle_req_head(const error_code &e, size_t bytes_
     }
 }
 
-void gprpc::server::srv_conn::handle_req_data(const error_code &e, size_t bytes_trans) {
+void gprpc::server::srv_conn::handle_req_data(const boost::system::error_code &e, size_t bytes_trans) {
     if (!e) {
         if (bytes_trans != header_.data_len) {
             e_log << "rpc connection request parsing failed, " << "conn: " << get_tag();
@@ -119,7 +119,7 @@ void server::srv_conn::write_rsp() {
                 bind(&server::srv_conn::handle_write, shared_from_this(), boost::asio::placeholders::error));
 }
 
-void server::srv_conn::handle_write(const error_code& e) {
+void server::srv_conn::handle_write(const boost::system::error_code& e) {
     //Server should hold connection until client close it
     /*if (!e) {
         boost::system::error_code ignore_ec;

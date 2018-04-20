@@ -51,11 +51,16 @@ tcp::resolver &gprpc::client::rpc_channel_impl::get_resolver() {
 }
 
 tcp::resolver::iterator &gprpc::client::rpc_channel_impl::get_it_ep() {
+    r_lock lock(mutex_);
     return it_ep_;
 }
 
-void gprpc::client::rpc_channel_impl::set_it_ep(tcp::resolver::iterator &it_ep) {
-    it_ep_ = it_ep;
+//void gprpc::client::rpc_channel_impl::set_it_ep(tcp::resolver::iterator &it_ep) {
+void gprpc::client::rpc_channel_impl::set_it_ep_if_empty(tcp::resolver::iterator &it_ep) {
+    w_lock lock(mutex_);
+    if (it_ep_ == tcp::resolver::iterator()) {
+        it_ep_ = it_ep;
+    }
 }
 
 bool gprpc::client::rpc_channel_impl::set_rpc_data(gprpc::rpc_data &data, const MethodDescriptor *method,

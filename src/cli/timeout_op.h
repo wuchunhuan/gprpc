@@ -23,7 +23,7 @@
 #include <boost/bind.hpp>
 #include <boost/system/error_code.hpp>
 
-using namespace boost::system;
+//using namespace boost::system;
 using namespace boost::asio::ip;
 
 class single_sync_wait :private boost::noncopyable{
@@ -73,31 +73,31 @@ private:
 
 bool connect_with_timeout(tcp::socket& s,
                           tcp::resolver::iterator& ep_it,
-                          long time_out_ms) throw( system_error);
+                          long time_out_ms) throw( boost::system::system_error);
 
 
 
 tcp::resolver::iterator resolve_with_timeout(tcp::resolver& resolver,
                                              const std::string& addr,
                                              const std::string& port,
-                                             long time_out_ms) throw( system_error);
+                                             long time_out_ms) throw( boost::system::system_error);
 
 
-void handle_trans_with_timeout_ex(const error_code &e,
+void handle_trans_with_timeout_ex(const boost::system::error_code &e,
                                   size_t bytes_trans,
                                   single_sync_wait* syncer,
                                   size_t* out_bytes,
                                   bool* out_timeout,
-                                  error_code* out_ec);
+                                  boost::system::error_code* out_ec);
 
 
 template <typename SyncReadStream, typename MutableBufferSequence>
 size_t read_with_timeout_ex(SyncReadStream& s,
                             const MutableBufferSequence& buffer,
-                            size_t size, long time_out_ms) throw( system_error){
+                            size_t size, long time_out_ms) throw( boost::system::system_error){
     bool sync_time_out = true;
     size_t sync_trans_size = 0;
-    error_code ec = boost::asio::error::would_block;
+    boost::system::error_code ec = boost::asio::error::would_block;
     single_sync_wait syncer;
     boost::asio::async_read(
         s,
@@ -110,13 +110,13 @@ size_t read_with_timeout_ex(SyncReadStream& s,
     single_sync_wait::wait_rst rst = syncer.timed_wait(boost::posix_time::milliseconds(time_out_ms));
     if ( rst == single_sync_wait::TIMED_OUT || sync_time_out ) {
         s.cancel();
-        throw system_error(
+        throw boost::system::system_error(
             boost::asio::error::timed_out
         );
     }
     
     if (ec != boost::asio::error::would_block) {
-        throw system_error( ec );
+        throw boost::system::system_error( ec );
     }
 
     return sync_trans_size;
@@ -125,10 +125,10 @@ size_t read_with_timeout_ex(SyncReadStream& s,
 template <typename SyncReadStream, typename MutableBufferSequence>
 size_t write_with_timeout_ex(SyncReadStream& s,
                             const MutableBufferSequence& buffer,
-                            size_t size, long time_out_ms) throw( system_error){
+                            size_t size, long time_out_ms) throw( boost::system::system_error){
     bool sync_time_out = true;
     size_t sync_trans_size = 0;
-    error_code ec = boost::asio::error::would_block;
+    boost::system::error_code ec = boost::asio::error::would_block;
     single_sync_wait syncer;
     boost::asio::async_write(
         s,
@@ -141,13 +141,13 @@ size_t write_with_timeout_ex(SyncReadStream& s,
     single_sync_wait::wait_rst rst = syncer.timed_wait(boost::posix_time::milliseconds(time_out_ms));
     if ( rst == single_sync_wait::TIMED_OUT || sync_time_out ) {
         s.cancel();
-        throw system_error(
+        throw boost::system::system_error(
             boost::asio::error::timed_out
         );
     }
 
     if (ec != boost::asio::error::would_block) {
-        throw system_error( ec );
+        throw boost::system::system_error( ec );
     }
 
     return sync_trans_size;

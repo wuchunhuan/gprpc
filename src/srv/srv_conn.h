@@ -28,7 +28,7 @@
 using namespace boost;
 using namespace boost::asio;
 using namespace boost::asio::ip;
-using namespace boost::system;
+//using namespace boost::system;
 using namespace common;
 using namespace gprpc;
 
@@ -42,11 +42,11 @@ namespace gprpc {
             tcp::socket& socket();
             void start();
             void read_req_head();
-            void handle_req_head(const error_code& e, size_t bytes_trans);
-            void handle_req_data(const error_code& e, size_t bytes_trans);
+            void handle_req_head(const boost::system::error_code& e, size_t bytes_trans);
+            void handle_req_data(const boost::system::error_code& e, size_t bytes_trans);
             void set_buffer(const char * data, uint32_t data_len);
             void write_rsp();
-            void handle_write(const error_code& e);
+            void handle_write(const boost::system::error_code& e);
 
             const char * get_buffer() const;
 
