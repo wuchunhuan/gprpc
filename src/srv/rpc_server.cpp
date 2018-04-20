@@ -41,7 +41,7 @@ bool gprpc::server::rpc_server::start() {
         size_t thread_num = std::max(wthread_num_, nthread_num_);
 
         for (size_t i = 0; i < thread_num; ++i) {
-            boost::shared_ptr<boost::thread> t(new thread(bind(&boost::asio::io_service::run, nios_)));
+            boost::shared_ptr<boost::thread> t(new boost::thread(bind(&boost::asio::io_service::run, nios_)));
             nthreads_.push_back(t);
         }
     }
@@ -49,12 +49,12 @@ bool gprpc::server::rpc_server::start() {
     if (nthread_num_ > 0 && wthread_num_ > 0) {
 
         for (size_t i = 0; i < nthread_num_; ++i) {
-            boost::shared_ptr<boost::thread> t(new thread(bind(&boost::asio::io_service::run, nios_)));
+            boost::shared_ptr<boost::thread> t(new boost::thread(bind(&boost::asio::io_service::run, nios_)));
             nthreads_.push_back(t);
         }
 
         for (size_t i = 0; i < wthread_num_; ++i) {
-            boost::shared_ptr<boost::thread> t(new thread(bind(&boost::asio::io_service::run, wios_)));
+            boost::shared_ptr<boost::thread> t(new boost::thread(bind(&boost::asio::io_service::run, wios_)));
             wthreads_.push_back(t);
         }
     }
