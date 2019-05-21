@@ -22,6 +22,7 @@
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <boost/system/error_code.hpp>
+#include <boost/noncopyable.hpp>
 
 //using namespace boost::system;
 using namespace boost::asio::ip;

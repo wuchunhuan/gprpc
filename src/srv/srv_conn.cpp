@@ -64,6 +64,8 @@ void gprpc::server::srv_conn::handle_req_head(const boost::system::error_code &e
             e_log << "rpc connection request rpc_magic error, " << "conn: " << get_tag() << "magic error!";
             return;
         }
+        uint32_t data_len = ntohl(header_.data_len);
+        header_.data_len = data_len;
         if (header_.data_len > conn_buf_size_) {
             e_log << "rpc connection request parsing failed, " << "conn: " << get_tag() << "rpc data too large!";
             return;
@@ -108,10 +110,11 @@ void server::srv_conn::set_buffer(const char *data, uint32_t data_len) {
     if (data == NULL || data_len > conn_buf_size_) {
         return;
     }
-    header_.data_len = data_len;
+    header_.data_len = htonl(data_len);
     size_t header_size = sizeof(header_);
     memcpy(buffer_.data(), &header_, header_size);
     memcpy(buffer_.data() + header_size, data, data_len);
+    header_.data_len = data_len;
 }
 
 void server::srv_conn::write_rsp() {

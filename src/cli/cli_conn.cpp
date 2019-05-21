@@ -108,10 +108,13 @@ tcp::socket &gprpc::client::cli_conn::socket() {
 }
 
 void gprpc::client::cli_conn::set_buffer(std::string& data) {
-
+    uint32_t ori_data_len = header_.data_len;
+    uint32_t data_len = htonl(header_.data_len);
+	header_.data_len = data_len;
     size_t header_size = sizeof(header_);
     memcpy(buffer_.data(), &header_, header_size);
     memcpy(buffer_.data() + header_size, data.c_str(), data.size());
+	header_.data_len = ori_data_len;
 }
 
 gprpc::rpc_header &gprpc::client::cli_conn::get_header() {
@@ -306,6 +309,8 @@ void gprpc::client::cli_conn::handle_rsp_header(const boost::system::error_code 
             done(-6, "rpc_magic error");
             return;
         }
+        uint32_t data_len = ntohl(header_.data_len);
+        header_.data_len = data_len;
         if (header_.data_len > conn_buf_size_) {
             done(-7);
             return;
